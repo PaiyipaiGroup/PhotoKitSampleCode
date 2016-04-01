@@ -8,10 +8,12 @@
 
 import UIKit
 import Photos
-//import PhotosUI
+
+
 class ViewController: UIViewController {
 
-//    var sectionFetchResults = [PHAssetCollection]()
+    var selectedSet = NSMutableSet()
+    
     var fetchResults : PHFetchResult!
     let imageManager = PHCachingImageManager()
     var previousPreheatRect = CGRectZero
@@ -21,6 +23,8 @@ class ViewController: UIViewController {
     @IBOutlet weak var collectionView: UICollectionView!
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        setupViews()
         
         setupFetch()
         
@@ -41,6 +45,11 @@ class ViewController: UIViewController {
     override func viewDidAppear(animated: Bool) {
 //        updateCachedAssets()
     }
+    
+    func setupViews() {
+        
+    }
+    
     
     func resetCachedAssets() {
         imageManager.stopCachingImagesForAllAssets()
@@ -64,11 +73,7 @@ class ViewController: UIViewController {
         let allPhotosOptions = PHFetchOptions()
         let sort = NSSortDescriptor(key: "creationDate", ascending: true)
         allPhotosOptions.sortDescriptors = [sort]
-
-        
         fetchResults = PHAsset.fetchAssetsWithOptions(allPhotosOptions)
-
-        
         PHPhotoLibrary.sharedPhotoLibrary().registerChangeObserver(self)
         
     }
@@ -78,6 +83,18 @@ class ViewController: UIViewController {
     }
 
     
+    
+    func upload(){
+        var uploadingImage = [UIImage]()
+        selectedSet.enumerateObjectsUsingBlock { (indexPath, stop) in
+            let cell = self.collectionView.cellForItemAtIndexPath(indexPath as! NSIndexPath) as! GridViewCell
+            let img = cell.imageView.image
+            uploadingImage.append(img!)
+        }
+        
+        
+        
+    }
 
 }
 
@@ -194,12 +211,17 @@ extension ViewController : UICollectionViewDataSource {
     func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
         
         let asset = fetchResults[indexPath.item] as! PHAsset
+
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier("GridCell", forIndexPath: indexPath) as! GridViewCell
+        
+        cell.checkButton.selected = selectedSet.containsObject(indexPath)
+
         cell.representedAssetIdentifier = asset.localIdentifier
         
         imageManager.requestImageForAsset(asset, targetSize: AssetGridThumbnailSize, contentMode: .AspectFill, options: nil) { (result, info) in
             if cell.representedAssetIdentifier == asset.localIdentifier {
-                cell.imageView.image = result
+                cell.loadImage(result)
+
             }
         }
                 
@@ -207,10 +229,20 @@ extension ViewController : UICollectionViewDataSource {
     }
     
 }
-
-
-
-
 extension ViewController : UICollectionViewDelegate {
     
+    func collectionView(collectionView: UICollectionView, didSelectItemAtIndexPath indexPath: NSIndexPath) {
+
+        let cell = collectionView.cellForItemAtIndexPath(indexPath) as! GridViewCell
+        
+        if cell.checkButton.selected{
+            cell.checkButton.selected = false
+            selectedSet.removeObject(indexPath)
+        } else {
+            cell.checkButton.selected = true
+            selectedSet.addObject(indexPath)
+        }
+        
+        
+    }
 }

@@ -9,17 +9,23 @@
 import UIKit
 
 class GridViewCell: UICollectionViewCell {
+    
+    @IBOutlet weak var checkButton: UIButton!
     @IBOutlet weak var imageView: UIImageView!
     
     var representedAssetIdentifier:String?
     override func prepareForReuse() {
         super.prepareForReuse()
         imageView.image = nil
+        
     }
     
-    func loadImage(image:UIImage) {
+    func loadImage(image:UIImage?) {
         imageView.image = image
     }
-    
-    
+
+    func loadStatus(){
+        checkButton.selected = !checkButton.selected
+    }
 }
+
